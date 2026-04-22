@@ -1,0 +1,60 @@
+# Simple workflow for deploying static content to GitHub Pages
+name: get directory structure and put it in a file
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "dirstructure"
+  cancel-in-progress: false
+
+jobs:
+  generate-dir:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        
+        - name: check if PHOTOS directory exists
+          run: |
+            if [ -d "PHOTOS" ]; then
+              echo "PHOTOS directory exists."
+            else
+              echo "PHOTOS directory does not exist. Exiting."
+              exit 1
+            fi
+        
+        - name: check if dir_structure.txt exists
+          run: |
+              if [ -f "dir_structure.txt" ]; then
+              echo "dir_structure.txt already exists. Exiting to avoid overwriting."
+              rm dir_structure.txt
+              else
+              echo "dir_structure.txt does not exist. Proceeding to create it."
+              fi
+            
+        - name: Get directory structure
+          run: |
+            echo "Getting directory structure..."
+            cd PHOTOS
+            dir > ../dir_structure.txt
+            echo "Directory structure saved to dir_structure.txt"
+
+        - name: Commit and push changes
+          uses: stefanzweifel/git-auto-commit-action@v5
+          with:
+              commit_message: "Update directory structure"
+              file_pattern: "dir_structure.txt"
